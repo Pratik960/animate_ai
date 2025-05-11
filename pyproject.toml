@@ -1,0 +1,17 @@
+[project]
+name = "ani-ai"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "fastapi>=0.115.12",
+    "groq>=0.24.0",
+    "imageio-ffmpeg>=0.6.0",
+    "langchain>=0.3.25",
+    "langchain-groq>=0.3.2",
+    "manim>=0.19.0",
+    "numpy>=2.2.5",
+    "uvicorn>=0.34.2",
+]
