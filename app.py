@@ -5,11 +5,7 @@ from dotenv import load_dotenv
 
 # LangChain v0.0.x imports
 from langchain_groq import ChatGroq
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
+from langchain.prompts.chat import ChatPromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.chains import ConversationChain
 

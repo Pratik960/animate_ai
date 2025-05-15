@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ANIMATE_Ai</title>
-  <link
-    href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-    rel="stylesheet"
-  />
+  <!-- Tailwind v2.2 -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
   <style>
+    /* Dot animation for typing indicator */
     @keyframes ellipsis {
       0%   { content: ""; }
       33%  { content: "."; }
@@ -16,220 +16,268 @@
       100% { content: "..."; }
     }
     .typing-dots::after {
+      content: "";
       display: inline-block;
       animation: ellipsis steps(1,end) 1s infinite;
-      content: "";
+    }
+
+    /* Glassmorphism backdrop */
+    .glass {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Ensure body is flex and full height */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex-grow: 1;
+    }
+
+    /* Enhanced loading animation */
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Adjust pre for copy button spacing */
+    pre {
+      margin-top: 2.5rem; /* Space for the copy button */
     }
   </style>
 </head>
-<body class="p-8 bg-gray-900 text-gray-100">
-  <!-- App Title -->
-  <div class="mb-6">
-    <h1 class="text-4xl font-extrabold text-white">ANIMATE_Ai</h1>
-  </div>
-  <div class="flex space-x-8">
-    <!-- Chat and Input Column -->
-    <div class="w-1/2 space-y-4">
-      <div id="chat-log" class="space-y-4 h-96 overflow-y-auto"></div>
-      <form id="scene-form" class="space-y-4">
-        <textarea
-          id="description"
-          class="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter your scene description..."
-          rows="4"
-        ></textarea>
-        <button
-          type="submit"
-          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+<body class="bg-gray-900 text-gray-100">
+  <!-- Header -->
+  <header class="sticky top-0 z-10 bg-gray-800 glass border-b border-gray-700 px-6 py-4">
+    <h1 class="text-3xl font-bold tracking-tight flex items-center gap-1">
+      <span class="text-blue-400">ANIMATE</span><span class="text-white">_Ai</span>
+    </h1>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex flex-col lg:flex-row gap-6 p-6 max-w-7xl mx-auto">
+    <!-- Chat Column -->
+    <section class="flex-1 flex flex-col h-[60vh] lg:h-auto lg:max-h-[80vh]">
+      <div class="flex items-center gap-2 mb-4 text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <h2 class="text-xl font-semibold">Chat</h2>
+      </div>
+
+      <div id="chat-log" role="log" aria-live="polite"
+           class="flex-1 overflow-y-auto space-y-4 p-4 glass rounded-lg mb-4">
+        <div id="initial-message" class="flex items-center justify-center text-gray-500 p-6">
+          <p>Start describing a scene to generate an animation</p>
+        </div>
+      </div>
+
+      <form id="chat-form" class="space-y-4" aria-label="Animation prompt">
+        <label for="input-message" class="sr-only">Describe a scene to animate</label>
+        <textarea id="input-message" rows="4"
+          class="w-full p-4 rounded-lg border border-gray-700 bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          placeholder="Describe a scene to animate…" required></textarea>
+        <button type="submit"
+          class="inline-flex items-center px-5 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:opacity-50 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           Generate
         </button>
       </form>
-    </div>
-    <!-- Video and Code Column with Tabs -->
-    <div class="w-1/2">
-      <!-- Tabs Navigation -->
+    </section>
+
+    <!-- Preview / Code Column -->
+    <section class="flex-1 flex flex-col h-[60vh] lg:h-auto lg:max-h-[80vh]">
+      <!-- Tabs -->
       <div class="flex border-b border-gray-700 mb-4">
-        <button id="tab-preview" class="px-4 py-2 -mb-px font-semibold text-sm text-gray-100 border-b-2 border-blue-500 focus:outline-none">
+        <button id="preview-tab" role="tab" aria-selected="true"
+          class="flex-1 text-center py-2 font-medium border-b-2 border-blue-400 text-blue-400 focus:outline-none"
+        >
           Preview
         </button>
-        <button id="tab-code" class="ml-4 px-4 py-2 -mb-px font-semibold text-sm text-gray-400 border-b-2 border-transparent hover:text-gray-200 focus:outline-none">
+        <button id="code-tab" role="tab" aria-selected="false"
+          class="flex-1 text-center py-2 font-medium text-gray-400 hover:text-gray-200 focus:outline-none"
+        >
           Code
         </button>
       </div>
-      <!-- Tab Contents -->
-      <div id="content-preview">
-        <div id="loading" class="text-center text-gray-400" style="display: none;">
-          <p>Rendering…</p>
-        </div>
-        <video
-          id="video"
-          controls
-          class="w-full rounded-lg shadow-lg bg-black"
-          style="display: none;"
-        ></video>
-      </div>
-      <div id="content-code" style="display: none;">
-        <div class="relative">
-          <!-- Copy button -->
-          <button
-            id="copy-code-btn"
-            hidden
-            aria-label="Copy code to clipboard"
-            class="absolute top-2 right-2 px-3 py-1 text-sm bg-gray-700 text-white rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          >
-            Copy
-          </button>
 
-          <div
-            id="code-preview"
-            class="p-4 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-auto"
-          >
-          <pre class="whitespace-pre-wrap break-words"><code id="code-content" class="font-mono text-sm text-gray-100"></code></pre>
+      <!-- Tab Panels -->
+      <div class="flex-1 glass rounded-lg overflow-hidden relative">
+        <!-- Preview Panel -->
+        <div id="preview-content" role="tabpanel" class="absolute inset-0 flex flex-col items-center justify-center p-4">
+          <div id="no-preview" class="text-gray-500 text-center">
+            <p>No preview available yet</p>
+            <p class="mt-1 text-sm">Describe a scene to generate an animation</p>
+          </div>
+          <div id="loading" class="hidden flex flex-col items-center justify-center">
+            <div class="loader"></div>
+            <p class="mt-2">Rendering animation…</p>
+          </div>
+          <video id="preview-video" controls class="hidden w-full h-full object-contain rounded-lg"></video>
+        </div>
+
+        <!-- Code Panel -->
+        <div id="code-content" role="tabpanel" aria-hidden="true" class="absolute inset-0 hidden p-4 overflow-auto">
+          <div class="relative">
+            <button id="copy-button" class="absolute top-0 right-0 mt-2 mr-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+              Copy code
+            </button>
+            <pre class="bg-gray-800 rounded-lg p-4 font-mono text-sm text-gray-200"><code id="code-display"></code></pre>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center text-gray-500 text-sm py-4 border-t border-gray-700">
+    © 2025 ANIMATE_Ai | Create beautiful animations with AI
+  </footer>
+
   <script>
-    // Tab functionality
-    const tabPreview = document.getElementById('tab-preview');
-    const tabCode = document.getElementById('tab-code');
-    const contentPreview = document.getElementById('content-preview');
-    const copyBtn     = document.getElementById('copy-code-btn');
-    const contentCode = document.getElementById('content-code');
+    // DOM Elements
+    const chatLog = document.getElementById('chat-log');
+    const chatForm = document.getElementById('chat-form');
+    const inputMessage = document.getElementById('input-message');
+    const previewTab = document.getElementById('preview-tab');
+    const codeTab = document.getElementById('code-tab');
+    const previewContent = document.getElementById('preview-content');
+    const codeContent = document.getElementById('code-content');
+    const loading = document.getElementById('loading');
+    const previewVideo = document.getElementById('preview-video');
+    const noPreview = document.getElementById('no-preview');
+    const copyButton = document.getElementById('copy-button');
+    const codeDisplay = document.getElementById('code-display');
 
-    copyBtn.addEventListener('click', async () => {
-      const text = codeContent.textContent;
-      if (!text) return;
+    // Tab Switching
+    function switchTab(tab) {
+      const isPreview = (tab === 'preview');
 
+      // Update tab button styles
+      if (isPreview) {
+        previewTab.classList.add('border-b-2', 'border-blue-400', 'text-blue-400');
+        previewTab.classList.remove('text-gray-400');
+        codeTab.classList.add('text-gray-400');
+        codeTab.classList.remove('border-b-2', 'border-blue-400', 'text-blue-400');
+      } else {
+        codeTab.classList.add('border-b-2', 'border-blue-400', 'text-blue-400');
+        codeTab.classList.remove('text-gray-400');
+        previewTab.classList.add('text-gray-400');
+        previewTab.classList.remove('border-b-2', 'border-blue-400', 'text-blue-400');
+      }
+
+      // Toggle content panels
+      previewContent.classList.toggle('hidden', !isPreview);
+      codeContent.classList.toggle('hidden', isPreview);
+
+      // Manage copy button visibility
+      if (!isPreview) {
+        const hasCode = codeDisplay.textContent.trim().length > 0;
+        copyButton.classList.toggle('hidden', !hasCode);
+      }
+    }
+
+    previewTab.addEventListener('click', () => switchTab('preview'));
+    codeTab.addEventListener('click', () => switchTab('code'));
+
+    // Copy Code Handler
+    copyButton.addEventListener('click', async () => {
       try {
-        // Use modern Clipboard API :contentReference[oaicite:4]{index=4}
-        await navigator.clipboard.writeText(text);
-
-        // Quick visual feedback
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = 'Copied!';
-        copyBtn.disabled    = true;
-        setTimeout(() => {
-          copyBtn.textContent = orig;
-          copyBtn.disabled    = false;
-        }, 1500);
+        await navigator.clipboard.writeText(codeDisplay.textContent || '');
+        const orig = copyButton.textContent;
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => copyButton.textContent = orig, 2000);
       } catch (err) {
         console.error('Copy failed', err);
-        copyBtn.textContent = 'Error';
-        setTimeout(() => (copyBtn.textContent = 'Copy'), 1500);
       }
     });
 
-    tabPreview.addEventListener('click', () => {
-      tabPreview.classList.replace('text-gray-400', 'text-gray-100');
-      tabPreview.classList.replace('border-transparent', 'border-blue-500');
-      tabCode.classList.replace('text-gray-100', 'text-gray-400');
-      tabCode.classList.replace('border-blue-500', 'border-transparent');
-      contentPreview.style.display = 'block';
-      contentCode.style.display = 'none';
-    });
-    tabCode.addEventListener('click', () => {
-      tabCode.classList.replace('text-gray-400', 'text-gray-100');
-      tabCode.classList.replace('border-transparent', 'border-blue-500');
-      tabPreview.classList.replace('text-gray-100', 'text-gray-400');
-      tabPreview.classList.replace('border-blue-500', 'border-transparent');
-      contentPreview.style.display = 'none';
-      contentCode.style.display = 'block';
-    });
+    // Chat Message Handler
+    function addMessage(content, isUser = false) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+      
+      const message = document.createElement('div');
+      message.className = `max-w-[80%] p-3 rounded-lg ${
+        isUser ? 'bg-blue-600 text-white' : 'glass backdrop-blur text-gray-100'
+      }`;
+      message.textContent = content;
+      
+      wrapper.appendChild(message);
+      chatLog.appendChild(wrapper);
+      chatLog.scrollTop = chatLog.scrollHeight;
 
-    // Form submission logic with typing indicator
-    const form = document.getElementById('scene-form');
-    const descriptionInput = document.getElementById('description');
-    const chatLog = document.getElementById('chat-log');
-    const loadingDiv = document.getElementById('loading');
-    const videoEl = document.getElementById('video');
-    const codeContent = document.getElementById('code-content');
-    const generateButton = form.querySelector('button[type="submit"]');
+      // Hide initial message after first user message
+      if (isUser) {
+        const initialMessage = document.getElementById('initial-message');
+        if (initialMessage) {
+          initialMessage.style.display = 'none';
+        }
+      }
+    }
 
-    form.addEventListener('submit', async (e) => {
+    // Mock API Response
+    async function mockApiCall(description) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return {
+        message: `I've created an animation based on your description: "${description}". You can view it in the preview tab.`,
+        code: `// Generated animation code\nconst canvas = document.getElementById('animation');\nconst ctx = canvas.getContext('2d');\n\n// Animation setup\nconst width = canvas.width = 400;\nconst height = canvas.height = 300;\n\n// Draw scene\nfunction draw() {\n  ctx.fillStyle = '#000';\n  ctx.fillRect(0, 0, width, height);\n  \n  // Your scene description: "${description}"\n  // ... animation code would be here\n  \n  requestAnimationFrame(draw);\n}\n\ndraw();`,
+        video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      };
+    }
+
+    // Form Submission
+    chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const description = descriptionInput.value.trim();
-      if (!description) return alert('Please enter a scene description.');
+      const description = inputMessage.value.trim();
+      if (!description) return;
 
-      // Append user’s message
-      const userWrapper = document.createElement('div');
-      userWrapper.className = 'flex justify-end';
-      const userDiv = document.createElement('div');
-      userDiv.className = 'p-3 bg-blue-800 rounded-lg max-w-md';
-      userDiv.innerHTML = `<p>${description}</p>`;
-      userWrapper.appendChild(userDiv);
-      chatLog.appendChild(userWrapper);
-      chatLog.scrollTop = chatLog.scrollHeight;
-      descriptionInput.value = '';
+      // Clear input and add user message
+      inputMessage.value = '';
+      addMessage(description, true);
 
-      // Create a typing bubble
-      const typingWrapper = document.createElement('div');
-      typingWrapper.className = 'flex';
-      const typingDiv = document.createElement('div');
-      typingDiv.className = 'p-3 bg-gray-800 rounded-lg max-w-md italic text-gray-400';
-      const span = document.createElement('span');
-      span.textContent = 'Thinking';
-      span.classList.add('typing-dots');
-      typingDiv.appendChild(span);
-      typingWrapper.appendChild(typingDiv);
-      chatLog.appendChild(typingWrapper);
-      chatLog.scrollTop = chatLog.scrollHeight;
-
-      // Show loading in preview tab
-      tabPreview.click();
-      generateButton.disabled = true;
-      loadingDiv.style.display = 'block';
-      videoEl.style.display = 'none';
+      // Show loading state
+      loading.classList.remove('hidden');
+      noPreview.classList.add('hidden');
+      previewVideo.classList.add('hidden');
+      switchTab('preview');
 
       try {
-        // 3️⃣ Fire off the API call
-        const resp = await fetch('/api/v1/createScene', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scene_description: description }),
-        });
-        if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
-        const data = await resp.json();
+        // Call API and handle response
+        const response = await mockApiCall(description);
+        
+        // Add AI response
+        addMessage(response.message);
 
-        // 4️⃣ Remove the typing bubble
-        typingWrapper.remove();
+        // Update code view
+        codeDisplay.textContent = response.code;
+        copyButton.classList.remove('hidden');
 
-        // 5️⃣ Append system message
-        const systemWrapper = document.createElement('div');
-        systemWrapper.className = 'flex';
-        const systemDiv = document.createElement('div');
-        systemDiv.className = 'p-3 bg-gray-800 rounded-lg max-w-md';
-        systemDiv.innerHTML = `<p>${data.message}</p>`;
-        systemWrapper.appendChild(systemDiv);
-        chatLog.appendChild(systemWrapper);
-        chatLog.scrollTop = chatLog.scrollHeight;
-
-        // Display code
-        codeContent.textContent = data.code || 'No code available.';
-        copyBtn.hidden = !data.code;
-
-        // Load video if provided
-        if (data.video_filename && data.video_filename.trim() !== '') {
-          const videoResp = await fetch(`/api/v1/video/${encodeURIComponent(data.video_filename)}`);
-          if (!videoResp.ok) throw new Error(`Video fetch error: ${videoResp.statusText}`);
-          const blob = await videoResp.blob();
-          videoEl.src = URL.createObjectURL(blob);
-          videoEl.style.display = 'block';
-          loadingDiv.style.display = 'none';
-          await videoEl.load();
-          videoEl.play().catch(() => {});
-        } else {
-          loadingDiv.style.display = 'none';
+        // Update video preview
+        if (response.video_url) {
+          previewVideo.src = response.video_url;
+          loading.classList.add('hidden');
+          previewVideo.classList.remove('hidden');
         }
-      } catch (err) {
-        // Remove typing and show error
-        typingWrapper.remove();
-        console.error(err);
-        alert(err.message);
-      } finally {
-        generateButton.disabled = false;
+      } catch (error) {
+        console.error('Error:', error);
+        addMessage('Sorry, there was an error generating your animation. Please try again.');
+        loading.classList.add('hidden');
+        noPreview.classList.remove('hidden');
       }
     });
   </script>
