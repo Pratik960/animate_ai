@@ -16,12 +16,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class SceneRequest(BaseModel):
-    scene_description: str
+    description: str
 
 
 class SceneResponse(BaseModel):
     message: str
-    video_filename: str
+    video_url: str
     code: str
 
 
@@ -33,7 +33,7 @@ class SceneResponse(BaseModel):
 async def create_scene_endpoint(
     payload: SceneRequest = Body(
         ...,
-        example={"scene_description": "A yellow circle zooming in"},
+        example={"description": "A yellow circle zooming in"},
     )
 ):
     """
@@ -41,18 +41,18 @@ async def create_scene_endpoint(
     and returns the video filename for later retrieval.
     """
     try:
-        logger.info("Rendering scene: %s", payload.scene_description)
+        logger.info("Rendering scene: %s", payload.description)
 
         # Offload blocking work and unpack both return values
         message, video_path, generated_code = await run_in_threadpool(
-            create_scene, payload.scene_description
+            create_scene, payload.description
         )
         logger.info("Render completed, video at: %s", video_path)
 
         filename = os.path.basename(video_path)
         return SceneResponse(
             message= message ,
-            video_filename=filename,
+            video_url=filename,
             code=generated_code,
         )
 
@@ -65,15 +65,15 @@ async def create_scene_endpoint(
 
 
 @router.get(
-    "/video/{video_filename}",
+    "/video/{video_url}",
     summary="Retrieve a previously generated video"
 )
-async def get_video(video_filename: str):
+async def get_video(video_url: str):
     """
     Serve the rendered video file from disk.
     """
     video_dir = os.path.join("temp", "videos")
-    file_path = os.path.join(video_dir, video_filename)
+    file_path = os.path.join(video_dir, video_url)
 
     if not os.path.isfile(file_path):
         logger.warning("Requested video does not exist: %s", file_path)
@@ -83,5 +83,5 @@ async def get_video(video_filename: str):
     return FileResponse(
         path=file_path,
         media_type="video/mp4",
-        filename=video_filename
+        filename=video_url
     )

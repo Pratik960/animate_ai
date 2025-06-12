@@ -395,16 +395,59 @@
           }
         }
       }
+      const create_scene_api = "http://localhost:8000/api/v1/createScene";
+      // API Response
+      async function create_scene(description) {
+        try {
+          const response = await fetch(create_scene_api, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ description }),
+          });
 
-      // Mock API Response
-      async function mockApiCall(description) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        return {
-          message: `I've created an animation based on your description: "${description}". You can view it in the preview tab.`,
-          code: `// Generated animation code\nconst canvas = document.getElementById('animation');\nconst ctx = canvas.getContext('2d');\n\n// Animation setup\nconst width = canvas.width = 400;\nconst height = canvas.height = 300;\n\n// Draw scene\nfunction draw() {\n  ctx.fillStyle = '#000';\n  ctx.fillRect(0, 0, width, height);\n  \n  // Your scene description: "${description}"\n  // ... animation code would be here\n  \n  requestAnimationFrame(draw);\n}\n\ndraw();`,
-          video_url:
-            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        };
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          const message = data.message;
+          const code = data.code;
+          const videoUrl = data.video_url;
+
+          console.log("Message:", message);
+          console.log("Code:", code);
+          console.log("Video URL:", videoUrl);  
+
+          return { message, code, videoUrl };
+        } catch (error) {
+          console.error("Error calling the API:", error);
+          return null;
+        }
+      
+      }
+
+      const video_api = 'http://localhost:8000/api/v1/video';
+      async function fetchVideoByUrl(videoUrl) {
+        try {
+         ;
+          const endpoint = `${video_api}/${videoUrl}`;
+
+          const response = await fetch(endpoint);
+          console.log("Response from video API:", response);
+          if (!response.ok) {
+            throw new Error(`Video fetch error: ${response.status}`);
+          }
+
+          const videoBlob = await response.blob(); // Assuming binary data
+          console.log("Fetched video blob:", videoBlob);
+          return videoBlob;
+        } catch (error) {
+          console.error("Error fetching video:", error);
+          return null;
+        }
       }
 
       var tabOpen = true;
@@ -443,7 +486,15 @@
 
         try {
           // Call API and handle response
-          const response = await mockApiCall(description);
+          const response = await create_scene(description);
+          // call the video api
+          if (response && response.videoUrl) {
+            const videoBlob = await fetchVideoByUrl(response.videoUrl);
+            if (videoBlob) {
+              const videoObjectURL = URL.createObjectURL(videoBlob);
+              response.video_url = videoObjectURL;
+            }
+          }
 
           // open the section only if theres is some response from api
           if(response){
