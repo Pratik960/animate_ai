@@ -74,6 +74,8 @@ config.ffmpeg_executable = r'{ffmpeg_exe}'
                 cwd=self.base_dir,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='ignore',
                 timeout=300  # 5-minute timeout
             )
 

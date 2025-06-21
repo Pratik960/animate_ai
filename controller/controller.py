@@ -1,5 +1,3 @@
-# controller/controller.py
-
 import os
 import logging
 
