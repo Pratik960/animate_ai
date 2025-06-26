@@ -60,7 +60,7 @@ config.ffmpeg_executable = r'{ffmpeg_exe}'
             command = [
                 'manim',
                 'render',
-                '-qm',  # Medium quality (720p30)
+                '-ql',  # Medium quality (720p30)
                 '--format', 'mp4',
                 '-o', output_path,
                 '--media_dir', 'temp/media',

@@ -1,23 +1,22 @@
 import os
 import logging
+from typing import TypedDict
 
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from services.animate_graph import process_scene_description
 
-from app import create_scene  # ensure this points to your root app.py
 
 router = APIRouter(prefix="/api/v1", tags=["scenes"])
 logger = logging.getLogger("controller")
 logging.basicConfig(level=logging.INFO)
 
 
-class SceneRequest(BaseModel):
+class SceneRequest(TypedDict):
     description: str
 
-
-class SceneResponse(BaseModel):
+class SceneGenerationResponse(TypedDict):
     message: str
     video_url: str
     code: str
@@ -25,7 +24,7 @@ class SceneResponse(BaseModel):
 
 @router.post(
     "/createScene",
-    response_model=SceneResponse,
+    response_model=SceneGenerationResponse,
     summary="Create and render a Manim scene",
 )
 async def create_scene_endpoint(
@@ -39,16 +38,18 @@ async def create_scene_endpoint(
     and returns the video filename for later retrieval.
     """
     try:
-        logger.info("Rendering scene: %s", payload.description)
+        description = payload.get("description","")
+        logger.info("Rendering scene: %s", description)
 
         # Offload blocking work and unpack both return values
+        #TODO implement convId properly
         message, video_path, generated_code = await run_in_threadpool(
-            create_scene, payload.description
+            process_scene_description, description, convId="12345" 
         )
         logger.info("Render completed, video at: %s", video_path)
 
         filename = os.path.basename(video_path)
-        return SceneResponse(
+        return SceneGenerationResponse(
             message= message ,
             video_url=filename,
             code=generated_code,
