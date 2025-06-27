@@ -1,7 +1,7 @@
 [project]
-name = "ani-ai"
+name = "Animate Ai"
 version = "0.1.0"
-description = "Add your description here"
+description = "Convert text to animated videos like magic."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -17,3 +17,6 @@ dependencies = [
     "numpy>=2.2.5",
     "uvicorn>=0.34.2",
 ]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
