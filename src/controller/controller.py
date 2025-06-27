@@ -5,7 +5,7 @@ from typing import TypedDict
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
-from services.animate_graph import process_scene_description
+from src.services.animate_graph import process_scene_description
 
 
 router = APIRouter(prefix="/api/v1", tags=["scenes"])

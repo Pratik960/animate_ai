@@ -7,8 +7,8 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
-from services.conversion_service import ConversionService
-from prompts.prompts import CODE_GENERATION_PROMPT, INTENT_CLASSIFICATION_PROMPT, SCENE_PLANNER_PROMPT
+from src.services.conversion_service import ConversionService
+from src.prompts.prompts import CODE_GENERATION_PROMPT, INTENT_CLASSIFICATION_PROMPT, SCENE_PLANNER_PROMPT
 
 # Load environment variables
 load_dotenv()
