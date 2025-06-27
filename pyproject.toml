@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "Animate Ai"
 version = "0.1.0"
@@ -20,3 +24,7 @@ dependencies = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
